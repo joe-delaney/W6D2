@@ -10,6 +10,15 @@ class SQLObject
   end
 
   def self.finalize!
+    columns.each do |column_name|
+      #getter
+      define_method(column_name) { @attributes[column_name]}
+
+      #setter
+      define_method("#{column_name}=") do |set_value|
+        attributes[column_name] = set_value
+      end
+    end
   end
 
   def self.table_name=(table_name)
@@ -34,11 +43,18 @@ class SQLObject
   end
 
   def initialize(params = {})
-
+    params.each do |key, val|
+      if self.class.columns.include?(key)
+        send("#{key}=", val)
+      else
+        raise "unknown attribute \'#{key}\'"
+      end
+    end
   end
 
   def attributes
-    # ...
+    @attributes ||= {}
+    @attributes
   end
 
   def attribute_values
