@@ -12,7 +12,7 @@ class SQLObject
   def self.finalize!
     columns.each do |column_name|
       #getter
-      define_method(column_name) { @attributes[column_name]}
+      define_method(column_name) { attributes[column_name]}
 
       #setter
       define_method("#{column_name}=") do |set_value|
@@ -30,12 +30,21 @@ class SQLObject
     @table_name
   end
 
+  require "byebug"
   def self.all
-    # ...
+    # debugger
+    tb_name = table_name
+    hashes = DBConnection.execute(<<-SQL)
+    SELECT
+      #{self.table_name}.*
+    FROM
+      #{self.table_name}
+    SQL
+    parse_all(hashes)
   end
 
   def self.parse_all(results)
-    # ...
+    results.map {|result| self.new(result)}
   end
 
   def self.find(id)
@@ -44,7 +53,7 @@ class SQLObject
 
   def initialize(params = {})
     params.each do |key, val|
-      if self.class.columns.include?(key)
+      if self.class.columns.include?(key.to_sym)
         send("#{key}=", val)
       else
         raise "unknown attribute \'#{key}\'"

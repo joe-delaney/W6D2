@@ -41,3 +41,4 @@ VALUES
   (3, "Haskell", 3),
   (4, "Markov", 3),
   (5, "Stray Cat", NULL);
+
