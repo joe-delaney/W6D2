@@ -20,13 +20,46 @@ end
 
 class BelongsToOptions < AssocOptions
   def initialize(name, options = {})
-    # ...
+    # debugger
+    if options.has_key?(:primary_key)
+        @primary_key = options[:primary_key]
+    else
+        @primary_key = :id
+    end
+
+    if options.has_key?(:foreign_key)
+        @foreign_key = options[:foreign_key]
+    else
+        @foreign_key = "#{name.underscore}_id".to_sym
+    end
+
+    if options.has_key?(:class_name)
+        @class_name = options[:class_name]
+    else
+        @class_name = "#{name.camelcase.singularize}"
+    end
   end
 end
 
 class HasManyOptions < AssocOptions
   def initialize(name, self_class_name, options = {})
-    # ...
+    if options.has_key?(:primary_key)
+        @primary_key = options[:primary_key]
+    else
+        @primary_key = :id
+    end
+
+    if options.has_key?(:foreign_key)
+        @foreign_key = options[:foreign_key]
+    else
+        @foreign_key = "#{name.underscore}_id".to_sym
+    end
+
+    if options.has_key?(:class_name)
+        @class_name = options[:class_name]
+    else
+        @class_name = "#{name.camelcase.singularize}"
+    end
   end
 end
 
@@ -45,6 +78,6 @@ module Associatable
   end
 end
 
-class SQLObject
+class SQLObject extend Associatable
   # Mixin Associatable here...
 end
