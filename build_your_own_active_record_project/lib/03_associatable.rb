@@ -52,13 +52,13 @@ class HasManyOptions < AssocOptions
     if options.has_key?(:foreign_key)
         @foreign_key = options[:foreign_key]
     else
-        @foreign_key = "#{name.underscore}_id".to_sym
+        @foreign_key = "#{self_class_name.underscore}_id".to_sym
     end
 
     if options.has_key?(:class_name)
         @class_name = options[:class_name]
     else
-        @class_name = "#{name.camelcase.singularize}"
+        @class_name = name.to_s.singularize.camelcase
     end
   end
 end
