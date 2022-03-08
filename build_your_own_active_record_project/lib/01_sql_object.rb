@@ -91,7 +91,6 @@ class SQLObject
   end
 
   def update
-    # debugger
     col_names = self.class.columns.drop(1) #drop the id
     set_line = col_names.map {|attr| "#{attr} = (?)"}.join(', ')
     id = attribute_values.shift
