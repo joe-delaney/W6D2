@@ -1,5 +1,6 @@
 require_relative 'db_connection'
 require 'active_support/inflector'
+require 'byebug'
 # NB: the attr_accessor we wrote in phase 0 is NOT used in the rest
 # of this project. It was only a warm up.
 
@@ -30,9 +31,7 @@ class SQLObject
     @table_name
   end
 
-  require "byebug"
   def self.all
-    # debugger
     tb_name = table_name
     hashes = DBConnection.execute(<<-SQL)
     SELECT
@@ -48,10 +47,19 @@ class SQLObject
   end
 
   def self.find(id)
-    # ...
+    result = DBConnection.execute(<<-SQL, id)
+    SELECT
+      #{self.table_name}.*
+    FROM
+      #{self.table_name}
+    WHERE
+      id = (?)
+    SQL
+    result.first.nil? ? nil : self.new(result.first) 
   end
 
   def initialize(params = {})
+    # debugger
     params.each do |key, val|
       if self.class.columns.include?(key.to_sym)
         send("#{key}=", val)
@@ -67,19 +75,38 @@ class SQLObject
   end
 
   def attribute_values
-    # ...
+    self.class.columns.map {|col| self.attributes[col] }
   end
 
   def insert
-    # ...
+    col_names = self.class.columns.drop(1).join(',') #drop the id
+    question_marks = (['?'] * (col_names.split(',').length)).join(',')
+    DBConnection.execute(<<-SQL, *attribute_values.drop(1)) 
+    INSERT INTO
+      #{self.class.table_name} (#{col_names})
+    VALUES
+      (#{question_marks})
+    SQL
+    attributes[:id] = DBConnection.instance.last_insert_row_id
   end
 
   def update
-    # ...
+    # debugger
+    col_names = self.class.columns.drop(1) #drop the id
+    set_line = col_names.map {|attr| "#{attr} = (?)"}.join(', ')
+    id = attribute_values.shift
+    DBConnection.execute(<<-SQL, *attribute_values.drop(1), id) 
+    UPDATE
+      #{self.class.table_name}
+    SET
+      #{set_line}
+    WHERE
+      id = (?)
+    SQL
   end
 
   def save
-    # ...
+    attributes[:id].nil? ? insert : update
   end
 
   private 
@@ -88,7 +115,7 @@ class SQLObject
       SELECT
         *
       FROM
-        cats
+        #{self.table_name}
       SQL
     data.first.map &:to_sym
   end
